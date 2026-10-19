@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulátor: Kvadratická funkcia</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #e9ecef;
+      color: #212529;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin: 0 0 5px 0;
+      color: #343a40;
+    }
+    p {
+      margin: 0;
+      color: #6c757d;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      border: 1px solid #ced4da;
+      max-width: 900px;
+      width: 100%;
+    }
+    .controls {
+      flex: 1;
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .card {
+      background: #f8f9fa;
+      border-left: 4px solid #495057;
+      padding: 12px 15px;
+      border-radius: 6px;
+      border: 1px solid #e9ecef;
+      border-left-width: 4px;
+    }
+    .card-title {
+      font-size: 0.9em;
+      text-transform: none;
+      color: #6c757d;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .formula {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #212529;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      color: #495057;
+    }
+    input[type=range] {
+      width: 100%;
+      cursor: pointer;
+      accent-color: #495057;
+    }
+    .canvas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    canvas {
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
+
+    /* Štýly pre zlomky a prehľadný výpočet vrcholu */
+    .formulas-box {
+      background-color: #f1f3f5;
+      border-left-color: #343a40;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .coefficients-row {
+      font-weight: 600;
+      color: #1c7ed6;
+      background-color: #e7f5ff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.95em;
+      border: 1px solid #d0ebff;
+    }
+    .calc-block {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95em;
+      color: #343a40;
+    }
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+    .fraction .numerator {
+      border-bottom: 1.5px solid #343a40;
+      padding-bottom: 1px;
+    }
+    .fraction .denominator {
+      padding-top: 1px;
+    }
+    .result-vertex {
+      margin-top: 5px;
+      padding-top: 8px;
+      border-top: 1px dashed #adb5bd;
+      font-weight: bold;
+      font-size: 1.05em;
+      color: #d9480f;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>Simulátor posunu kvadratickej funkcie</h2>
+    <p>Sleduj posun vrcholu V[m, n] a tvar paraboly</p>
+  </header>
+
+  <div class="container">
+    <div class="controls">
+      
+      <!-- Rozvinutý predpis -->
+      <div class="card">
+        <div class="card-title">rozvinutý predpis (y = ax² + bx + c)</div>
+        <div class="formula" id="standardFormula">y = 1x² + 0x + 0</div>
+      </div>
+
+      <!-- Vrcholový predpis -->
+      <div class="card">
+        <div class="card-title">vrcholový predpis (y = a(x - m)² + n)</div>
+        <div class="formula" id="vertexFormula">y = 1(x - 0)² + 0</div>
+      </div>
+
+      <!-- Posuvník a -->
+      <div class="control-group">
+        <div class="label-row">
+          <span>Koeficient (a):</span>
+          <span id="valA">1</span>
+        </div>
+        <input type="range" id="sliderA" min="-5" max="5" step="0.1" value="1">
+      </div>
+
+      <!-- Posuvník m -->
+      <div class="control-group">
+        <div class="label-row">
+          <span>Posun po osi X (m):</span>
+          <span id="valM">0</span>
+        </div>
+        <input type="range" id="sliderM" min="-5" max="5" step="0.5" value="0">
+      </div>
+
+      <!-- Posuvník n -->
+      <div class="control-group">
+        <div class="label-row">
+          <span>Posun po osi Y (n):</span>
+          <span id="valN">0</span>
+        </div>
+        <input type="range" id="sliderN" min="-5" max="5" step="0.5" value="0">
+      </div>
+
+      <!-- Výpočty a vzorce vrcholu -->
+      <div class="card formulas-box">
+        <div class="card-title">📍 Vrchol V[m, n] a vzorce</div>
+        
+        <!-- Výpis hodnôt koeficientov a, b, c -->
+        <div class="coefficients-row">
+          Hodnoty koeficientov: a = <span id="coefA">1</span>, b = <span id="coefB">0</span>, c = <span id="coefC">0</span>
+        </div>
+
+        <!-- Výpočet pre m -->
+        <div class="calc-block">
+          <span><b>m</b> = -</span>
+          <div class="fraction">
+            <span class="numerator">b</span>
+            <span class="denominator">2a</span>
+          </div>
+          <span>= -</span>
+          <div class="fraction">
+            <span class="numerator" id="calcB">0</span>
+            <span class="denominator">2 · <span id="calcA1">1</span></span>
+          </div>
+          <span>= <b><span id="resM">0</span></b></span>
+        </div>
+
+        <!-- Výpočet pre n -->
+        <div class="calc-block">
+          <span><b>n</b> = c -</span>
+          <div class="fraction">
+            <span class="numerator">b²</span>
+            <span class="denominator">4a</span>
+          </div>
+          <span>= <span id="calcC">0</span> -</span>
+          <div class="fraction">
+            <span class="numerator">(<span id="calcB2">0</span>)²</span>
+            <span class="denominator">4 · <span id="calcA2">1</span></span>
+          </div>
+          <span>= <b><span id="resN">0</span></b></span>
+        </div>
+
+        <div class="result-vertex">
+          Vrchol: V[<span id="vM">0</span>, <span id="vN">0</span>]
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Graf -->
+    <div class="canvas-container">
+      <canvas id="graphCanvas" width="360" height="360"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const sliderA = document.getElementById('sliderA');
+    const sliderM = document.getElementById('sliderM');
+    const sliderN = document.getElementById('sliderN');
+
+    const valA = document.getElementById('valA');
+    const valM = document.getElementById('valM');
+    const valN = document.getElementById('valN');
+
+    const standardFormula = document.getElementById('standardFormula');
+    const vertexFormula = document.getElementById('vertexFormula');
+
+    const coefA = document.getElementById('coefA');
+    const coefB = document.getElementById('coefB');
+    const coefC = document.getElementById('coefC');
+
+    const vM = document.getElementById('vM');
+    const vN = document.getElementById('vN');
+
+    const calcB = document.getElementById('calcB');
+    const calcA1 = document.getElementById('calcA1');
+    const resM = document.getElementById('resM');
+    const calcC = document.getElementById('calcC');
+    const calcB2 = document.getElementById('calcB2');
+    const calcA2 = document.getElementById('calcA2');
+    const resN = document.getElementById('resN');
+
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const scale = 30; // 1 jednotka = 30px
+    const originX = canvas.width / 2;
+    const originY = canvas.height / 2;
+
+    function formatNumber(num) {
+      return Math.round(num * 100) / 100;
+    }
+
+    function update() {
+      let a = parseFloat(sliderA.value);
+      if (a === 0) a = 0.001; 
+
+      const m = parseFloat(sliderM.value);
+      const n = parseFloat(sliderN.value);
+
+      valA.textContent = a === 0.001 ? 0 : a;
+      valM.textContent = m;
+      valN.textContent = n;
+
+      const b = -2 * a * m;
+      const c = a * m * m + n;
+
+      // Hodnoty koeficientov
+      coefA.textContent = formatNumber(a);
+      coefB.textContent = formatNumber(b);
+      coefC.textContent = formatNumber(c);
+
+      // Vrcholový predpis
+      let mSign = m >= 0 ? `- ${m}` : `+ ${Math.abs(m)}`;
+      let nSign = n >= 0 ? `+ ${n}` : `- ${Math.abs(n)}`;
+      vertexFormula.textContent = `y = ${formatNumber(a)}(x ${mSign})² ${nSign}`;
+
+      // Rozvinutý predpis
+      let bText = b >= 0 ? `+ ${formatNumber(b)}x` : `- ${formatNumber(Math.abs(b))}x`;
+      let cText = c >= 0 ? `+ ${formatNumber(c)}` : `- ${formatNumber(Math.abs(c))}`;
+      standardFormula.textContent = `y = ${formatNumber(a)}x² ${bText} ${cText}`;
+
+      // Vkladanie hodnôt do vzorcov
+      calcA1.textContent = formatNumber(a);
+      calcA2.textContent = formatNumber(a);
+      calcB.textContent = formatNumber(b);
+      calcB2.textContent = formatNumber(b);
+      calcC.textContent = formatNumber(c);
+
+      resM.textContent = formatNumber(m);
+      resN.textContent = formatNumber(n);
+      vM.textContent = formatNumber(m);
+      vN.textContent = formatNumber(n);
+
+      drawGraph(a, m, n);
+    }
+
+    function drawGraph(a, m, n) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Mriežka
+      ctx.strokeStyle = '#e9ecef';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += scale) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += scale) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Os X a Y
+      ctx.strokeStyle = '#868e96';
+      ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      ctx.moveTo(0, originY);
+      ctx.lineTo(canvas.width, originY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, canvas.height);
+      ctx.stroke();
+
+      // Parabola (Tmavosivá / Antracitová)
+      ctx.strokeStyle = '#343a40';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+
+      let first = true;
+      for (let px = 0; px <= canvas.width; px++) {
+        let x = (px - originX) / scale;
+        let y = a * Math.pow(x - m, 2) + n;
+        let py = originY - y * scale;
+
+        if (first) {
+          ctx.moveTo(px, py);
+          first = false;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+
+      // Vrchol V (Teplá oranžová/terakota pre pekný kontrast)
+      let vx = originX + m * scale;
+      let vy = originY - n * scale;
+
+      ctx.fillStyle = '#d9480f';
+      ctx.beginPath();
+      ctx.arc(vx, vy, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    sliderA.addEventListener('input', update);
+    sliderM.addEventListener('input', update);
+    sliderN.addEventListener('input', update);
+
+    update();
+  </script>
+</body>
+</html>
